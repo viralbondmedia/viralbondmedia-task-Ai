@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Viralbond Media | Task Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(145deg, #f0f4fe 0%, #e9eefa 100%); color: #101828; overflow-x: hidden; }
+    .app-wrapper { display: flex; min-height: 100vh; }
+    .sidebar { width: 280px; background: rgba(10, 25, 47, 0.95); backdrop-filter: blur(12px); padding: 2rem 1.5rem; position: sticky; top: 0; height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); }
+    .logo-area { margin-bottom: 3rem; display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, #4f46e5, #a855f7); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon i { font-size: 1.5rem; color: white; }
+    .logo-text h2 { font-size: 1.35rem; font-weight: 700; background: linear-gradient(135deg, #FFFFFF, #c7d2fe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .logo-text p { font-size: 0.7rem; color: #9ca3af; }
+    .nav-menu { display: flex; flex-direction: column; gap: 0.75rem; }
+    .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-radius: 18px; font-weight: 500; color: #cfdfed; cursor: pointer; transition: 0.25s; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; transform: translateX(4px); }
+    .nav-item.active { background: linear-gradient(95deg, rgba(79,70,229,0.2), rgba(168,85,247,0.15)); color: white; border-left: 3px solid #818cf8; }
+    .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.6rem; margin-bottom: 2.5rem; }
+    .stat-card { background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); border-radius: 32px; padding: 1.5rem 1.2rem; border: 1px solid rgba(255,255,255,0.6); transition: 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
+    .stat-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: #4b5563; }
+    .stat-number { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #1e293b, #4f46e5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-radius: 36px; padding: 1.8rem 2rem; margin-bottom: 2.5rem; border: 1px solid rgba(255,255,255,0.7); }
+    .section-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; gap: 10px; background: linear-gradient(125deg, #0f172a, #4f46e5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .form-2col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-weight: 600; font-size: 0.8rem; color: #1e293b; }
+    input, select, textarea { background: #ffffffcc; border: 1px solid #e2e8f0; padding: 12px 14px; border-radius: 20px; font-family: 'Inter', sans-serif; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(79,70,229,0.2); }
+    button { background: linear-gradient(105deg, #4f46e5, #7c3aed); border: none; padding: 12px 20px; border-radius: 40px; font-weight: 600; color: white; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    button:hover { transform: scale(0.98); box-shadow: 0 10px 20px -8px #4f46e5; }
+    .btn-secondary { background: #334155; }
+    .table-wrapper { overflow-x: auto; border-radius: 28px; background: rgba(255,255,255,0.6); padding: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { text-align: left; padding: 1rem 0.8rem; background: #f1f5f9; font-weight: 600; }
+    td { padding: 0.9rem 0.8rem; border-bottom: 1px solid #e2e8f0; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem; align-items: center; }
+    .search-box { flex: 2; min-width: 200px; position: relative; }
+    .search-box i { position: absolute; left: 15px; top: 13px; color: #94a3b8; }
+    .search-box input { width: 100%; padding-left: 40px; }
+    .empty-message { text-align: center; padding: 3rem; color: #475569; }
+    .toast { position: fixed; bottom: 30px; right: 30px; background: #1e293b; color: white; padding: 14px 24px; border-radius: 60px; z-index: 1000; animation: slideIn 0.2s ease; }
+    .toast.success { background: #10b981; }
+    .toast.error { background: #ef4444; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    @media (max-width: 700px) { .app-wrapper { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; padding: 1rem; } .nav-menu { flex-direction: row; flex-wrap: wrap; } }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar">
+    <div class="logo-area"><div class="logo-icon"><i class="fas fa-bolt"></i></div><div class="logo-text"><h2>Viralbond Media</h2><p>Influencer OS</p></div></div>
+    <div class="nav-menu">
+      <div class="nav-item active" data-section="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+      <div class="nav-item" data-section="addTask"><i class="fas fa-plus-circle"></i><span>Add Task</span></div>
+      <div class="nav-item" data-section="taskRecords"><i class="fas fa-table-list"></i><span>Task Records</span></div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <!-- Dashboard Cards -->
+    <div id="dashboardSection" class="cards-grid">
+      <div class="stat-card"><div class="stat-title">TOTAL TASKS</div><div class="stat-number" id="totalTasks">0</div></div>
+      <div class="stat-card"><div class="stat-title">PENDING</div><div class="stat-number" id="pendingTasks">0</div></div>
+      <div class="stat-card"><div class="stat-title">IN PROGRESS</div><div class="stat-number" id="inProgressTasks">0</div></div>
+      <div class="stat-card"><div class="stat-title">COMPLETED</div><div class="stat-number" id="completedTasks">0</div></div>
+    </div>
+
+    <!-- Add Task Form -->
+    <div id="addTaskSection" class="glass-card">
+      <div class="section-title"><i class="fas fa-pen-alt"></i> Assign New Outreach Task</div>
+      <form id="taskForm">
+        <div class="form-2col">
+          <div class="input-group"><label>Assigned To Name *</label><input type="text" id="assignName" required></div>
+          <div class="input-group"><label>Assigned To Email *</label><input type="email" id="assignEmail" required></div>
+          <div class="input-group"><label>Task Title *</label><input type="text" id="taskTitle" required></div>
+          <div class="input-group"><label>Task Details *</label><textarea rows="2" id="taskDetails" required></textarea></div>
+          <div class="input-group"><label>Influencer Niche *</label><input type="text" id="influencerNiche" placeholder="e.g., Beauty, Gaming" required></div>
+          <div class="input-group"><label>Platform *</label><select id="platform" required><option value="">Select</option><option>Instagram</option><option>YouTube</option><option>LinkedIn</option><option>Twitter/X</option><option>Other</option></select></div>
+          <div class="input-group"><label>Priority *</label><select id="priority" required><option>Low</option><option>Medium</option><option>High</option></select></div>
+          <div class="input-group"><label>Due Date *</label><input type="date" id="dueDate" required></div>
+          <div class="input-group"><label>Send Time *</label><input type="time" id="sendTime" required></div>
+          <div class="input-group"><label>Extra Notes</label><textarea rows="2" id="extraNotes"></textarea></div>
+        </div>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="submit" id="submitBtn"><i class="fas fa-cloud-upload-alt"></i> Create Task & Sync</button>
+          <button type="button" id="resetFormBtn" class="btn-secondary"><i class="fas fa-undo-alt"></i> Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Task Records Table -->
+    <div id="taskRecordsSection">
+      <div class="section-title"><i class="fas fa-tasks"></i> Outreach Tasks Database</div>
+      <div class="filter-bar">
+        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..."></div>
+        <select id="statusFilter"><option value="">All Status</option><option>Pending</option><option>In Progress</option><option>Completed</option></select>
+        <select id="priorityFilter"><option value="">All Priority</option><option>Low</option><option>Medium</option><option>High</option></select>
+        <select id="platformFilter"><option value="">All Platforms</option><option>Instagram</option><option>YouTube</option><option>LinkedIn</option><option>Twitter/X</option><option>Other</option></select>
+        <button id="refreshTableBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="taskTable">
+          <thead><tr><th>Task ID</th><th>Assigned To</th><th>Email</th><th>Title</th><th>Niche</th><th>Platform</th><th>Priority</th><th>Due Date</th><th>Send Time</th><th>Status</th><th>Email Sent</th><th>Created At</th></tr></thead>
+          <tbody id="tableBody"><tr><td colspan="12" class="empty-message">No tasks found. Add your first task.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ======================== HARDCODED APPS SCRIPT URL ========================
+  // 🔴 IMPORTANT: Replace this with your actual Google Apps Script Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCVCzABCdx5bdAdzMVXMicMIyg7GCdmmqfxjETcwihlbXSpgfFKgCIOUNSO4_-dR8/exec";  // e.g., "https://script.google.com/macros/s/AKfycb.../exec"
+  
+  // ======================== GLOBAL VARIABLES ========================
+  let allTasks = [];
+
+  // DOM elements
+  const totalTasksSpan = document.getElementById('totalTasks');
+  const pendingTasksSpan = document.getElementById('pendingTasks');
+  const inProgressSpan = document.getElementById('inProgressTasks');
+  const completedSpan = document.getElementById('completedTasks');
+  const tableBody = document.getElementById('tableBody');
+  const searchInput = document.getElementById('searchInput');
+  const statusFilter = document.getElementById('statusFilter');
+  const priorityFilter = document.getElementById('priorityFilter');
+  const platformFilter = document.getElementById('platformFilter');
+  const refreshBtn = document.getElementById('refreshTableBtn');
+  const taskForm = document.getElementById('taskForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const resetFormBtn = document.getElementById('resetFormBtn');
+
+  // Toast notification
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  function setLoading(button, isLoading) {
+    if (isLoading) {
+      button.disabled = true;
+      button.innerHTML = `<span class="spinner"></span> Syncing...`;
+    } else {
+      button.disabled = false;
+      button.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Create Task & Sync`;
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function updateDashboard() {
+    const total = allTasks.length;
+    const pending = allTasks.filter(t => t.Status === 'Pending').length;
+    const inProgress = allTasks.filter(t => t.Status === 'In Progress').length;
+    const completed = allTasks.filter(t => t.Status === 'Completed').length;
+    totalTasksSpan.innerText = total;
+    pendingTasksSpan.innerText = pending;
+    inProgressSpan.innerText = inProgress;
+    completedSpan.innerText = completed;
+  }
+
+  function renderTasks() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const statusVal = statusFilter.value;
+    const priorityVal = priorityFilter.value;
+    const platformVal = platformFilter.value;
+    
+    let filtered = allTasks.filter(task => {
+      const matchSearch = (task['Task Title'] || '').toLowerCase().includes(searchTerm) ||
+                          (task['Assigned To Name'] || '').toLowerCase().includes(searchTerm) ||
+                          (task['Assigned To Email'] || '').toLowerCase().includes(searchTerm) ||
+                          (task['Influencer Niche'] || '').toLowerCase().includes(searchTerm) ||
+                          (task['Platform'] || '').toLowerCase().includes(searchTerm);
+      const matchStatus = statusVal ? task.Status === statusVal : true;
+      const matchPriority = priorityVal ? task.Priority === priorityVal : true;
+      const matchPlatform = platformVal ? task.Platform === platformVal : true;
+      return matchSearch && matchStatus && matchPriority && matchPlatform;
+    });
+    
+    if (filtered.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="12" class="empty-message">📭 No tasks found. Add your first task.</td></tr>';
+      return;
+    }
+    tableBody.innerHTML = filtered.map(task => `
+      <tr>
+        <td>${escapeHtml(task['Task ID'] || '')}</td>
+        <td>${escapeHtml(task['Assigned To Name'] || '')}</td>
+        <td>${escapeHtml(task['Assigned To Email'] || '')}</td>
+        <td>${escapeHtml(task['Task Title'] || '')}</td>
+        <td>${escapeHtml(task['Influencer Niche'] || '')}</td>
+        <td>${escapeHtml(task['Platform'] || '')}</td>
+        <td><span style="background:${task.Priority === 'High' ? '#fee2e2' : task.Priority === 'Medium' ? '#fff3e3' : '#e6f7e6'}; padding:4px 8px; border-radius:40px;">${escapeHtml(task.Priority || '')}</span></td>
+        <td>${escapeHtml(task['Due Date'] || '')}</td>
+        <td>${escapeHtml(task['Send Time'] || '')}</td>
+        <td>${escapeHtml(task.Status || 'Pending')}</td>
+        <td>${escapeHtml(task['Email Sent'] || 'No')}</td>
+        <td>${escapeHtml(task['Created At'] || '')}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Fetch tasks from Google Sheet
+  async function fetchTasksFromGoogleSheet() {
+    if (!SCRIPT_URL || SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+      showToast("❌ Please set your Apps Script URL in the JavaScript constant (SCRIPT_URL)", "error");
+      return false;
+    }
+    try {
+      const url = `${SCRIPT_URL}?action=getTasks`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (data.success && Array.isArray(data.tasks)) {
+        allTasks = data.tasks;
+        updateDashboard();
+        renderTasks();
+        showToast(`✅ Loaded ${allTasks.length} tasks from sheet`, "success");
+        return true;
+      } else {
+        allTasks = [];
+        updateDashboard();
+        renderTasks();
+        showToast("No tasks found or empty sheet", "success");
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to fetch tasks: " + err.message, "error");
+      return false;
+    }
+  }
+
+  // Submit new task to Google Sheets
+  async function submitTaskToGoogleSheet(taskData) {
+    if (!SCRIPT_URL || SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+      showToast("❌ Please set your Apps Script URL in the JavaScript constant (SCRIPT_URL)", "error");
+      return false;
+    }
+    try {
+      const payload = { action: "addTask", ...taskData };
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        // IMPORTANT: Do not use application/json header with Google Apps Script Web App.
+        // It can trigger CORS/preflight issues. text/plain works smoothly.
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result.success) {
+        showToast("✨ Task saved to Google Sheets!", "success");
+        await fetchTasksFromGoogleSheet(); // reload table
+        return true;
+      } else {
+        throw new Error(result.error || "Unknown error from Apps Script");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("❌ Submit failed: " + err.message, "error");
+      return false;
+    }
+  }
+
+  // Form submit handler
+  taskForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const assignName = document.getElementById('assignName').value.trim();
+    const assignEmail = document.getElementById('assignEmail').value.trim();
+    const taskTitle = document.getElementById('taskTitle').value.trim();
+    const taskDetails = document.getElementById('taskDetails').value.trim();
+    const influencerNiche = document.getElementById('influencerNiche').value.trim();
+    const platform = document.getElementById('platform').value;
+    const priority = document.getElementById('priority').value;
+    const dueDate = document.getElementById('dueDate').value;
+    const sendTime = document.getElementById('sendTime').value;
+    const extraNotes = document.getElementById('extraNotes').value.trim();
+
+    if (!assignName || !assignEmail || !taskTitle || !taskDetails || !influencerNiche || !platform || !dueDate || !sendTime) {
+      showToast("Please fill all required fields (*)", "error");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+    if (!emailRegex.test(assignEmail)) {
+      showToast("Invalid email format", "error");
+      return;
+    }
+
+    const taskId = `TASK-${Date.now()}`;
+    const status = "Pending";
+    const emailSent = "No";
+    const createdAt = new Date().toLocaleString();
+    const sentAt = "";
+    
+    const taskPayload = {
+      taskId, assignedToName: assignName, assignedToEmail: assignEmail, taskTitle, taskDetails,
+      influencerNiche, platform, priority, dueDate, sendTime, status, emailSent, createdAt, sentAt, extraNotes
+    };
+    
+    setLoading(submitBtn, true);
+    const success = await submitTaskToGoogleSheet(taskPayload);
+    setLoading(submitBtn, false);
+    if (success) {
+      taskForm.reset();
+    }
+  });
+
+  resetFormBtn.addEventListener('click', () => taskForm.reset());
+  refreshBtn.addEventListener('click', () => fetchTasksFromGoogleSheet());
+  
+  searchInput.addEventListener('input', renderTasks);
+  statusFilter.addEventListener('change', renderTasks);
+  priorityFilter.addEventListener('change', renderTasks);
+  platformFilter.addEventListener('change', renderTasks);
+  
+  // Sidebar navigation (no settings)
+  const sections = {
+    dashboard: 'dashboardSection',
+    addTask: 'addTaskSection',
+    taskRecords: 'taskRecordsSection'
+  };
+  function showSection(sectionId) {
+    document.getElementById('dashboardSection').style.display = sectionId === 'dashboardSection' ? 'grid' : 'none';
+    document.getElementById('addTaskSection').style.display = sectionId === 'addTaskSection' ? 'block' : 'none';
+    document.getElementById('taskRecordsSection').style.display = sectionId === 'taskRecordsSection' ? 'block' : 'none';
+  }
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const section = item.getAttribute('data-section');
+      if (section && sections[section]) {
+        showSection(sections[section]);
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+      }
+    });
+  });
+  showSection('dashboardSection');
+  
+  // Initial load
+  window.addEventListener('load', async () => {
+    if (SCRIPT_URL && SCRIPT_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+      await fetchTasksFromGoogleSheet();
+    } else {
+      showToast("🔧 Please edit the HTML file and set your Apps Script URL in the 'SCRIPT_URL' constant", "error");
+      allTasks = []; updateDashboard(); renderTasks();
+    }
+  });
+</script>
+</body>
+</html>
